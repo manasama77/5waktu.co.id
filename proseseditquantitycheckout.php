@@ -115,7 +115,7 @@ if($satuan_penghitungan=="weight")
 	{
 		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
 		$data_harga=mysqli_fetch_array($kueri_harga);
-		echo $total_weight;
+		// echo $total_weight;
 		$total_harga=$data_harga['satuan_harga']*$total_weight;
 	}
 	elseif($weight_class=="b" && $id_kategori_produk==8)
@@ -197,4 +197,3 @@ else
 {
 	echo "ERROR SILAHKAN HUBUNGI ADMINISTRATOR";
 }
-?>
