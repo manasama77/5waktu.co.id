@@ -5,6 +5,7 @@ session_destroy();
 <!DOCTYPE html>
 <html lang="en">
 <!-- Head Start -->
+
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -18,14 +19,14 @@ session_destroy();
 	<link href="css/cover.css" rel="stylesheet">
 	<link href="css/signin.css" rel="stylesheet" type="text/css">
 	<script src="js/bootstrap.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
+	<link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css" />
 	<script type="text/javascript" src="DataTables/datatables.min.js"></script>
 
 </head>
 
 <body>
-	
-	<div class="site-wrapper">	
+
+	<div class="site-wrapper">
 		<div class="site-wrapper-inner">
 			<div class="title-container">
 
@@ -51,7 +52,7 @@ session_destroy();
 
 				<div class="mastfoot">
 					<div class="inner">
-						<p> &copy; 2017 Lima Waktu Logistic. Version 1.0.9 | Created by <a href="https://twitter.com/adampm">@adampm</a>.</p>
+						<p> &copy; 2017 - 2021 Lima Waktu Logistic. Version 1.1.0 | Created by <a href="https://twitter.com/adampm">@adampm</a>.</p>
 					</div>
 				</div>
 
@@ -59,4 +60,20 @@ session_destroy();
 		</div>
 	</div>
 </body>
+
 </html>
+
+<script src="js/jquery-3.2.1.min.js"></script>
+<script src="js/sweetalert2@10.js"></script>
+
+<script>
+	$(document).ready(function() {
+		if (<?= $_SESSION['auth']; ?> == 0) {
+			Swal.fire({
+				icon: 'warning',
+				title: 'Oops...',
+				text: 'Username / Password Salah',
+			});
+		}
+	});
+</script>

@@ -1,16 +1,19 @@
 <style>
-	td{ font-size:12px; }
+	td {
+		font-size: 12px;
+	}
 </style>
-<div class="container">	
+<div class="container">
 	<div class="widget-header">
 		<i class="fa fa-list-alt"></i>
-		<h3>Laporan Pengiriman - <font color="blue">All Data</font></h3>
+		<h3>Laporan Pengiriman - <font color="blue">All Data</font>
+		</h3>
 	</div>
 	<div class="widget-content">
 		<div class="table-responsive">
-			<table id="dashboardlist" width="100%" class="table table-responsive table-hover table-bordered">
+			<table id="dashboardlist" width="100%" class="table table-responsive table-hover table-bordered" style="font-size: 14px;">
 				<thead>
-					<tr>			
+					<tr>
 						<th style="text-align:center;">DO Num</th>
 						<th style="text-align:center;">Warehouse</th>
 						<th style="text-align:center;">DO Print Date</th>
