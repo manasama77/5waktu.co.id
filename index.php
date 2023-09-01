@@ -68,7 +68,11 @@ session_destroy();
 
 <script>
 	$(document).ready(function() {
-		if (<?= $_SESSION['auth']; ?> == 0) {
+		if (<?php if (isset($_SESSION['auth'])) {
+				echo $_SESSION['auth'];
+			} else {
+				echo "";
+			} ?> == 0) {
 			Swal.fire({
 				icon: 'warning',
 				title: 'Oops...',
