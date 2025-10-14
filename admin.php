@@ -44,6 +44,10 @@ if (!isset($_SESSION['login'])) {
 			.dt-upper {
 				text-transform: uppercase;
 			}
+
+			td {
+				font-size: 12px;
+			}
 		</style>
 	</head>
 
@@ -56,7 +60,7 @@ if (!isset($_SESSION['login'])) {
 						<span class="fa fa-bar"></span>
 						<span class="fa fa-bar"></span>
 					</a>
-					<div class="brand"><a href="admin.php"><img src="img/logo.png" /></a></div>
+					<div class="brand"><a href="admin.php"><img src="img/logo.png" width="550px" /></a></div>
 					<div class="nav-collapse">
 						<ul class="nav pull-right">
 							<li class="dropdown">
@@ -87,8 +91,6 @@ if (!isset($_SESSION['login'])) {
 				<?php
 				if (isset($_GET['page'])) {
 					$page = $_REQUEST['page'];
-					var_dump($page);
-					exit;
 					include($page . '.php');
 				} else {
 					include('dashboard.php');
@@ -130,98 +132,11 @@ if (!isset($_SESSION['login'])) {
 		<script>
 			$(document).ready(function() {
 
-				var progressList = $('#progresslist').DataTable({
-					"processing": true,
-					"serverSide": true,
-					"deferRender": true,
-					"ajax": {
-						url: "ajax/data-pengiriman-progress.php", // json datasource
-						type: "post", // method  , by default get
-						error: function() { // error handling
-							$(".progressList-error").html("");
-							$("#progressList").append('<tbody class="employee-grid-error"><tr><th colspan="11">No data found in the server</th></tr></tbody>');
-							$("#progressList_processing").css("display", "none");
+				// Progress page now uses direct PHP fetch, no DataTables needed
 
-						}
-					},
-					"columnDefs": [{
-							"targets": [6],
-							"sClass": "dt-right"
-						},
-						{
-							"targets": [0, 1, 2, 3, 4, 5, 7],
-							"sClass": "dt-center"
-						},
-						{
-							"searchable": false,
-							"orderable": false,
-							"targets": [7]
-						}
-					]
-				});
+				// Delivered page now uses direct PHP fetch, no DataTables needed
 
-				var deliveredlist = $('#deliveredlist').DataTable({
-					"processing": true,
-					"serverSide": true,
-					"deferRender": true,
-					"cache": false,
-					"order": [
-						[2, 'DESC']
-					],
-					"ajax": {
-						url: "ajax/data-pengiriman-delivered.php", // json datasource
-						type: "post", // method  , by default get
-						error: function() { // error handling
-							$(".deliveredlist-error").html("");
-							$("#deliveredlist").append('<tbody class="employee-grid-error"><tr><th colspan="11">No data found in the server</th></tr></tbody>');
-							$("#deliveredlist_processing").css("display", "none");
-
-						}
-					},
-					"columnDefs": [{
-							"targets": [7],
-							"sClass": "dt-right"
-						},
-						{
-							"targets": [0, 1, 2, 3, 4, 5, 6, 8, 9],
-							"sClass": "dt-center"
-						},
-						{
-							"searchable": false,
-							"orderable": false,
-							"targets": [9]
-						}
-					]
-				});
-
-				var dashboardList = $('#dashboardlist').DataTable({
-					"processing": true,
-					"serverSide": true,
-					"deferRender": true,
-					"cache": false,
-					"order": [
-						[2, 'DESC']
-					],
-					"ajax": {
-						url: "ajax/data-dashboard.php", // json datasource
-						type: "post", // method  , by default get
-						error: function() { // error handling
-							$(".dashboardlist-error").html("");
-							$("#dashboardlist tbody").html('<tr><th colspan="11">No data found in the server</th></tr>');
-							$("#dashboardlist_processing").css("display", "none");
-
-						}
-					},
-					"columnDefs": [{
-							"targets": [7],
-							"sClass": "dt-right"
-						},
-						{
-							"targets": [0, 1, 2, 3, 4, 5, 6, 8, 9, 10],
-							"sClass": "dt-center"
-						}
-					],
-				});
+				// Dashboard now uses direct PHP fetch, no DataTables needed
 
 				// PART OF USER LIST
 				var userList = $('#listuser').DataTable({

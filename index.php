@@ -1,83 +1,86 @@
-<?php
-// session_start();
-// session_destroy();
-?>
 <!DOCTYPE html>
 <html lang="en">
-<!-- Head Start -->
 
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-	<link rel="icon" type="image/x-icon" href="img/favicon.ico" />
-	<title>Lima Waktu Logistic</title>
-	<meta name="author" content="@manasama77">
-	<!-- <script src="js/jquery-3.1.0.min.js"></script> -->
-	<script src="js/jquery-2.2.3.min.js"></script>
-	<link href="css/bootstrap.min.css" rel="stylesheet">
-	<link href="css/cover.css" rel="stylesheet">
-	<link href="css/signin.css" rel="stylesheet" type="text/css">
-	<script src="js/bootstrap.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css" />
-	<script type="text/javascript" src="DataTables/datatables.min.js"></script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="author" content="adampm">
 
+	<title>Lima Waktu Logistic</title>
+
+	<link rel="icon" type="image/x-icon" href="img/favicon.ico" />
+	<link rel="stylesheet" href="css/new_login.css">
 </head>
 
 <body>
-
-	<div class="site-wrapper">
-		<div class="site-wrapper-inner">
-			<div class="title-container">
-
-				<div class="inner cover col-xs-8">
-					<h1 class="cover-heading">Lima Waktu Logistic Application</h1>
-					<p class="lead">Application for support your expedition.</p>
+	<div class="login-container">
+		<div class="login-card">
+			<div class="login-header">
+				<div class="logo">
+					<div class="logo-square"></div>
 				</div>
-
-				<div class="form-login col-xs-4">
-					<form class="form-signin" action="process_login.php" method="post">
-						<h2 class="form-signin-heading">Please sign in</h2>
-						<label for="username" class="sr-only">Username</label>
-						<input name="username" id="username" class="form-control" placeholder="Username" required autofocus type="text">
-						<label for="password" class="sr-only">Password</label>
-						<input name="password" id="password" class="form-control" placeholder="Password" required type="password">
-						<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-					</form>
-				</div>
-
+				<h2>5Waktu<br />Logistic</h2>
+				<p>Sign In</p>
 			</div>
 
-			<div class="cover-container">
+			<!-- show error when $_SESSION['auth'] == "0" -->
+			<?php
+			if (session_status() === PHP_SESSION_NONE) {
+				session_start();
+			}
+			if (isset($_SESSION['auth']) && $_SESSION['auth'] === "0") {
+				// forgot to unset session after showing the message
+				unset($_SESSION['auth']);
+			?>
+				<div class="form-error-message" style="color:#d32f2f; background:#fff3f3; border:2px solid #d32f2f; padding:12px; margin-bottom:16px; text-align:center; font-weight:600;">Username / Password Salah</div>
+			<?php
+			}
+			?>
 
-				<div class="mastfoot">
-					<div class="inner">
-						<p> &copy; 2017 - 2021 Lima Waktu Logistic. Version 1.1.0 | Created by <a href="https://twitter.com/adampm">@adampm</a>.</p>
+
+			<form class="form-signin" action="process_login.php" method="post">
+				<div class="form-group">
+					<label for="username" class="form-label">Username</label>
+					<div class="input-wrapper">
+						<input type="text" id="username" name="username" required autocomplete="username" autofocus>
 					</div>
+					<span class="error-message" id="usernameError"></span>
 				</div>
 
+				<div class="form-group">
+					<label for="password" class="form-label">Password</label>
+					<div class="input-wrapper password-wrapper">
+						<input type="password" id="password" name="password" required autocomplete="current-password">
+						<button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
+							<span class="toggle-text">SHOW</span>
+						</button>
+					</div>
+					<span class="error-message" id="passwordError"></span>
+				</div>
+
+				<button type="submit" class="login-btn">
+					<span class="btn-text">SIGN IN</span>
+					<div class="btn-loader">
+						<div class="loader-bar"></div>
+						<div class="loader-bar"></div>
+						<div class="loader-bar"></div>
+					</div>
+				</button>
+			</form>
+
+			<div class="success-message" id="successMessage">
+				<div class="success-icon">✓</div>
+				<h3>Success</h3>
+				<p>Redirecting...</p>
 			</div>
 		</div>
 	</div>
+
+	<footer style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 16px; background: transparent; color: #6b7280; font-size: 12px; z-index: 1000;">
+		&copy; 2017 - 2025 Lima Waktu Logistic. Version 1.1.0 | Created by <a href="https://www.linkedin.com/in/adampm/" style="color: #6b7280; text-decoration: none; font-weight: 600;" target="_blank" rel="noopener noreferrer">adam pm</a>
+	</footer>
+
+	<script src="./js/new_login.js"></script>
 </body>
 
 </html>
-
-<script src="js/jquery-3.2.1.min.js"></script>
-<script src="js/sweetalert2@10.js"></script>
-
-<!-- <script>
-	$(document).ready(function() {
-		if (<?php if (isset($_SESSION['auth'])) {
-				echo $_SESSION['auth'];
-			} else {
-				echo "";
-			} ?> == 0) {
-			Swal.fire({
-				icon: 'warning',
-				title: 'Oops...',
-				text: 'Username / Password Salah',
-			});
-		}
-	});
-</script> -->

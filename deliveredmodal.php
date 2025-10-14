@@ -2,245 +2,341 @@
 <?php
 // session_start();
 include('config.php');
-$id_pengiriman=$_REQUEST['id'];
-$level=$_REQUEST['level'];
-$kueri_modal=mysqli_query($con, "
+$id_pengiriman = (int)$_REQUEST['id'];
+$level = isset($_REQUEST['level']) ? $_REQUEST['level'] : '';
+
+// Optimized query - only select needed columns and use LEFT JOIN
+$kueri_modal = mysqli_query($con, "
 	SELECT
-	tbl_pengiriman.id_pengiriman as 'id_pengiriman',
-	tbl_pengiriman.nama_gudang as 'nama_gudang',
-	tbl_pengiriman.random_id as 'random_id',
-	tbl_mobil.no_polisi as 'no_polisi',
-	tbl_driver.nama_driver as 'nama_driver',
-	tbl_asst.nama_asst as 'nama_asst',
-	tbl_pengiriman.do_num as 'do_num',
-	tbl_pengiriman.do_print_date as 'do_print_date',
-	tbl_pengiriman.exit_date as 'exit_date',
-	tbl_pengiriman.date_terima_ekspedisi as 'date_terima_ekspedisi',
-	tbl_pengiriman.waktu_pengiriman as 'waktu_pengiriman',
-	tbl_pengiriman.estimation_date as 'estimation_date',
-	tbl_pengiriman.received_date as 'received_date',
-	tbl_pengiriman.received_num as 'received_num',
-	tbl_pengiriman.sum_harga as 'sum_harga',
-	tbl_dealer.nama_dealer as 'nama_dealer',
-	tbl_ekspedisi.nama_ekspedisi as 'nama_ekspedisi',
-	tbl_pengiriman.durasi as 'durasi',
-	tbl_kota.nama_kota as 'nama_kota',
-	tbl_pengiriman.status_pengiriman as 'status_pengiriman',
-	tbl_pengiriman.status_penerimaan as 'status_penerimaan',
-	tbl_pengiriman.received_name as 'received_name',
-	tbl_pengiriman.notes as 'notes',
-	tbl_pengiriman.late
-	FROM
-	tbl_pengiriman
-	LEFT JOIN tbl_mobil ON tbl_pengiriman.id_mobil = tbl_mobil.id_mobil
-	LEFT JOIN tbl_driver ON tbl_pengiriman.id_driver = tbl_driver.id_driver
-	LEFT JOIN tbl_asst ON tbl_pengiriman.id_asst = tbl_asst.id_asst
-	LEFT JOIN tbl_dealer ON tbl_pengiriman.id_dealer = tbl_dealer.id_dealer
-	LEFT JOIN tbl_ekspedisi ON tbl_dealer.id_ekspedisi = tbl_ekspedisi.id_ekspedisi
-	LEFT JOIN tbl_kota ON tbl_dealer.id_kota = tbl_kota.id_kota
-	WHERE id_pengiriman = '$id_pengiriman'
-	") or die($con->error);
-$data_modal=mysqli_fetch_array($kueri_modal);
-$random_id=$data_modal['random_id'];
+		p.id_pengiriman,
+		p.nama_gudang,
+		p.random_id,
+		p.do_num,
+		p.do_print_date,
+		p.exit_date,
+		p.date_terima_ekspedisi,
+		p.waktu_pengiriman,
+		p.estimation_date,
+		p.received_date,
+		p.received_num,
+		p.sum_harga,
+		p.status_pengiriman,
+		p.status_penerimaan,
+		p.received_name,
+		p.notes,
+		p.late,
+		p.durasi,
+		m.no_polisi,
+		d.nama_driver,
+		a.nama_asst,
+		dl.nama_dealer,
+		e.nama_ekspedisi,
+		k.nama_kota
+	FROM tbl_pengiriman p
+	LEFT JOIN tbl_mobil m ON p.id_mobil = m.id_mobil
+	LEFT JOIN tbl_driver d ON p.id_driver = d.id_driver
+	LEFT JOIN tbl_asst a ON p.id_asst = a.id_asst
+	LEFT JOIN tbl_dealer dl ON p.id_dealer = dl.id_dealer
+	LEFT JOIN tbl_ekspedisi e ON dl.id_ekspedisi = e.id_ekspedisi
+	LEFT JOIN tbl_kota k ON dl.id_kota = k.id_kota
+	WHERE p.id_pengiriman = $id_pengiriman
+	LIMIT 1
+") or die($con->error);
+
+$data_modal = mysqli_fetch_assoc($kueri_modal);
+
+if (!$data_modal) {
+	echo '<div class="alert alert-danger">Data tidak ditemukan</div>';
+	exit;
+}
+
+$random_id = (int)$data_modal['random_id'];
+
+// Fetch products - optimized query
+$products = array();
+if ($random_id > 0) {
+	$kueri_produk = mysqli_query($con, "
+        SELECT 
+            pk.produk_name,
+            tp.quantity,
+            tp.total_harga
+        FROM temp_produk tp
+        LEFT JOIN tbl_produk_katalog pk ON pk.id_produk_katalog = tp.id_produk_katalog
+        WHERE tp.random_id = $random_id
+    ");
+
+	while ($row = mysqli_fetch_assoc($kueri_produk)) {
+		$products[] = $row;
+	}
+}
+
+// Calculate late penalty
+$price = $data_modal['sum_harga'];
+$late_penalty = 0;
+if ($data_modal['status_penerimaan'] == 'LATE' || $data_modal['status_penerimaan'] == 'late') {
+	$telat = abs((int)$data_modal['late']);
+	$late_penalty = ($price * $telat) * 0.001;
+}
+$grand_total = $price - $late_penalty;
 ?>
 <div class="modal fade" id="myModal" role="dialog">
-	<div class="modal-dialog">
+	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title">Detail Info</h4>
+			<div class="modal-header" style="background-color: #5cb85c; color: white;">
+				<button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 0.8;">&times;</button>
+				<h4 class="modal-title">
+					<i class="fa fa-check-circle"></i> Detail Pengiriman Delivered - DO #<?= htmlspecialchars($data_modal['do_num']); ?>
+				</h4>
 			</div>
-			<div class="modal-body">
-				<table width="100%" class="table table-responsive table-hover">
-					<tr>
-						<td width="30px">ID Pengiriman</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['id_pengiriman'];?></td>
-					</tr>
-					<tr>
-						<td width="30px">Nama Gudang</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['nama_gudang'];?></td>
-					</tr>
-					<tr>
-						<td>Mobil</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['no_polisi'];?></td>
-					</tr>
-					<tr>
-						<td>Driver</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['nama_driver'];?></td>
-					</tr>
-					<tr>
-						<td>Asst.</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['nama_asst'];?></td>
-					</tr>
-					<tr>
-						<td>DO Num</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['do_num'];?></td>
-					</tr>
-					<tr>
-						<td>DO Print Date</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['do_print_date'];?></td>
-					</tr>
-					<tr>
-						<td>Exit Date</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['exit_date'];?></td>
-					</tr>
-					<tr>
-						<td>Date Terima Ekspedisi</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['date_terima_ekspedisi'];?></td>
-					</tr>
-					<tr>
-						<td>Exit Time</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px">
-							<?php
-							if($data_modal['waktu_pengiriman']=="normal"){
-								echo "Normal";
-							}elseif($data_modal['waktu_pengiriman']=="late"){
-								echo "Diatas jam 15.00";
-							}
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td>Estimation Date</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['estimation_date'];?></td>
-					</tr>
-					<tr>
-						<td>Received Date</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['received_date'];?></td>
-					</tr>
+			<div class="modal-body" style="padding: 20px;">
+				<div class="row">
+					<!-- Left Column -->
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading" style="background-color: #f5f5f5;">
+								<strong><i class="fa fa-info-circle"></i> Informasi Pengiriman</strong>
+							</div>
+							<div class="panel-body" style="padding: 10px;">
+								<table class="table table-condensed" style="margin-bottom: 0;">
+									<tr>
+										<td width="40%"><strong>ID Pengiriman</strong></td>
+										<td width="5%">:</td>
+										<td><?= htmlspecialchars($data_modal['id_pengiriman']); ?></td>
+									</tr>
+									<tr>
+										<td><strong>DO Number</strong></td>
+										<td>:</td>
+										<td><span class="label label-primary"><?= htmlspecialchars($data_modal['do_num']); ?></span></td>
+									</tr>
+									<tr>
+										<td><strong>Warehouse</strong></td>
+										<td>:</td>
+										<td><?= htmlspecialchars($data_modal['nama_gudang']); ?></td>
+									</tr>
+									<tr>
+										<td><strong>Dealer</strong></td>
+										<td>:</td>
+										<td><?= htmlspecialchars($data_modal['nama_dealer']); ?></td>
+									</tr>
+									<tr>
+										<td><strong>Region</strong></td>
+										<td>:</td>
+										<td><?= htmlspecialchars($data_modal['nama_kota']); ?></td>
+									</tr>
+									<tr>
+										<td><strong>Expedition</strong></td>
+										<td>:</td>
+										<td><?= htmlspecialchars($data_modal['nama_ekspedisi']); ?> <span class="badge"><?= $data_modal['durasi']; ?> Hari</span></td>
+									</tr>
+									<tr>
+										<td><strong>Status</strong></td>
+										<td>:</td>
+										<td>
+											<?php
+											$status = strtoupper($data_modal['status_pengiriman']);
+											$status_penerimaan = strtoupper($data_modal['status_penerimaan']);
+											?>
+											<span class="label label-success"><?= $status; ?></span>
+											<?php if ($status_penerimaan == 'LATE'): ?>
+												<span class="label label-danger"><?= $status_penerimaan; ?> (<?= abs($data_modal['late']); ?> Day)</span>
+											<?php else: ?>
+												<span class="label label-success"><?= $status_penerimaan; ?></span>
+											<?php endif; ?>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
 
-					<tr>
-						<td>Received Num</td>
-						<td width="5px" align="center">:</td>
-						<td width="5px"><?=$data_modal['received_num'];?></td>
-					</tr>
-					<tr>
-						<td>Dealer</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['nama_dealer'];?></td>
-					</tr>
-					<tr>
-						<td>Expedition</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['nama_ekspedisi'];?> (<?=$data_modal['durasi'];?> Day)</td>
-					</tr>
-					<tr>
-						<td>Region</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['nama_kota'];?></td>
-					</tr>
-					<tr>
-						<td>Product</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px">
-							<?php
-							$kueri_temp_produk=mysqli_query($con, "SELECT * FROM temp_produk AS temp LEFT JOIN tbl_produk_katalog AS pk ON pk.id_produk_katalog = temp.id_produk_katalog LEFT JOIN tbl_kategori_produk AS kp ON pk.id_kategori_produk = kp.id_kategori_produk WHERE temp.random_id=$random_id");
-							while($data_temp_produk=mysqli_fetch_array($kueri_temp_produk)){
-								$nama_produk=$data_temp_produk['produk_name'];
-								$quantity=$data_temp_produk['quantity'];
-								$total_harga=$data_temp_produk['total_harga'];
-								$weight_class=strtoupper($data_temp_produk['weight_class']);
-								$total_weight=strtoupper($data_temp_produk['total_weight']);
-								$total_volumetric=strtoupper($data_temp_produk['total_volumetric']);
+						<div class="panel panel-default">
+							<div class="panel-heading" style="background-color: #f5f5f5;">
+								<strong><i class="fa fa-calendar"></i> Tanggal Penting</strong>
+							</div>
+							<div class="panel-body" style="padding: 10px;">
+								<table class="table table-condensed" style="margin-bottom: 0;">
+									<tr>
+										<td width="40%"><strong>DO Print Date</strong></td>
+										<td width="5%">:</td>
+										<td><?= $data_modal['do_print_date'] ? date('d M Y', strtotime($data_modal['do_print_date'])) : '-'; ?></td>
+									</tr>
+									<tr>
+										<td><strong>Exit Date</strong></td>
+										<td>:</td>
+										<td><?= $data_modal['exit_date'] ? date('d M Y', strtotime($data_modal['exit_date'])) : '-'; ?></td>
+									</tr>
+									<tr>
+										<td><strong>Exit Time</strong></td>
+										<td>:</td>
+										<td>
+											<?php
+											if ($data_modal['waktu_pengiriman'] == 'normal') {
+												echo '<span class="label label-success">Normal</span>';
+											} elseif ($data_modal['waktu_pengiriman'] == 'late') {
+												echo '<span class="label label-warning">Diatas jam 15.00</span>';
+											} else {
+												echo '-';
+											}
+											?>
+										</td>
+									</tr>
+									<tr>
+										<td><strong>Date Terima Ekspedisi</strong></td>
+										<td>:</td>
+										<td><?= $data_modal['date_terima_ekspedisi'] ? date('d M Y', strtotime($data_modal['date_terima_ekspedisi'])) : '-'; ?></td>
+									</tr>
+									<tr>
+										<td><strong>Estimation Date</strong></td>
+										<td>:</td>
+										<td><?= $data_modal['estimation_date'] ? date('d M Y', strtotime($data_modal['estimation_date'])) : '-'; ?></td>
+									</tr>
+									<tr>
+										<td><strong>Received Date</strong></td>
+										<td>:</td>
+										<td><?= $data_modal['received_date'] ? date('d M Y', strtotime($data_modal['received_date'])) : '-'; ?></td>
+									</tr>
+								</table>
+							</div>
+						</div>
 
-								$kueri_total_harga=mysqli_query($con, "SELECT SUM(total_harga) as sum_harga FROM temp_produk WHERE random_id=$random_id");
-								$data_total_harga=mysqli_fetch_array($kueri_total_harga);
-								$sum_harga=$data_total_harga['sum_harga'];
-								echo $nama_produk . "(" . $quantity . " Qty) (Rp.".number_format($total_harga,0).")<br>";
-							}
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td>Total Price</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px">
-							<?php
-							$price = $data_modal['sum_harga'];
-							$jumlah_desimal ="0";
-							$pemisah_desimal =",";
-							$pemisah_ribuan =".";
+						<div class="panel panel-default">
+							<div class="panel-heading" style="background-color: #f5f5f5;">
+								<strong><i class="fa fa-users"></i> Tim Pengiriman</strong>
+							</div>
+							<div class="panel-body" style="padding: 10px;">
+								<table class="table table-condensed" style="margin-bottom: 0;">
+									<tr>
+										<td width="40%"><strong>Mobil</strong></td>
+										<td width="5%">:</td>
+										<td><span class="label label-default"><?= htmlspecialchars($data_modal['no_polisi'] ?: '-'); ?></span></td>
+									</tr>
+									<tr>
+										<td><strong>Driver</strong></td>
+										<td>:</td>
+										<td><?= htmlspecialchars($data_modal['nama_driver'] ?: '-'); ?></td>
+									</tr>
+									<tr>
+										<td><strong>Assistant</strong></td>
+										<td>:</td>
+										<td><?= htmlspecialchars($data_modal['nama_asst'] ?: '-'); ?></td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
 
-							echo "Rp ".number_format($price, $jumlah_desimal);
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td>Status</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px">
-							<?php
-							$status_pengiriman=strtoupper($data_modal['status_pengiriman']);
-							$status_penerimaan=strtoupper($data_modal['status_penerimaan']);
-							$late = $data_modal['late'];
+					<!-- Right Column -->
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading" style="background-color: #f5f5f5;">
+								<strong><i class="fa fa-cube"></i> Produk</strong>
+							</div>
+							<div class="panel-body" style="padding: 10px; max-height: 200px; overflow-y: auto;">
+								<?php if (count($products) > 0): ?>
+									<ul class="list-unstyled" style="margin-bottom: 0;">
+										<?php foreach ($products as $product): ?>
+											<li style="padding: 5px 0; border-bottom: 1px solid #eee;">
+												<i class="fa fa-check-circle text-success"></i>
+												<strong><?= htmlspecialchars($product['produk_name']); ?></strong>
+												<span class="badge"><?= $product['quantity']; ?> Qty</span>
+												<br><small style="margin-left: 20px;">Rp. <?= number_format($product['total_harga'], 0, ',', '.'); ?></small>
+											</li>
+										<?php endforeach; ?>
+									</ul>
+								<?php else: ?>
+									<p class="text-muted text-center"><i class="fa fa-info-circle"></i> Tidak ada produk</p>
+								<?php endif; ?>
+							</div>
+							<?php if (count($products) > 0): ?>
+								<div class="panel-footer" style="background-color: #f9f9f9;">
+									<strong>Total Harga:</strong>
+									<span class="pull-right text-success" style="font-size: 16px;">
+										<strong>Rp. <?= number_format($data_modal['sum_harga'], 0, ',', '.'); ?></strong>
+									</span>
+								</div>
+							<?php endif; ?>
+						</div>
 
-							if($status_penerimaan=="LATE")
-							{
-								echo $status_pengiriman."<font color='red'>(".$status_penerimaan." ".$late." Day)</font>";
-								$telat = str_replace("-", "", $late);
-								$late_penalty = ($price * $telat) * 0.001;
-							}
-							else
-							{
-								echo "$status_pengiriman <font color=green>($status_penerimaan)</font>";
-								$late_penalty = "0";
-							}
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td>Received Name</td>
-						<td width="5px" align="center">:</td>
-						<td width="100px"><?=$data_modal['received_name'];?>
-						<?php if($level == "super_admin"){ ?>
-							<form method="post" id="edit_received_name" class="form-horizontal" action="admin.php?page=editreceivedname2">
-								<input name="id_pengiriman" type="hidden" id="id_pengiriman" value="<?=$id_pengiriman;?>" />
-								<button class="btn btn-primary" type="submit">Edit Received Name</button>
-							</form>
-						<?php } ?>
-					</td>
-				</tr>
-				<tr>
-					<td>Notes</td>
-					<td width="5px" align="center">:</td>
-					<td width="100px">
-						<textarea name="notes" id="notes" cols="45" rows="5" disabled><?=$data_modal['notes'];?></textarea>
-					</td>
-				</tr>
-				<tr>
-					<td>Late Penalty</td>
-					<td width="5px" align="center">:</td>
-					<td width="100px">
-						<?=number_format($late_penalty);?>
-					</td>
-				</tr>
-				<tr>
-					<td>Grand Total</td>
-					<td width="5px" align="center">:</td>
-					<td width="100px">
-						<?php
-						$grand_total = $price - $late_penalty;
-						echo number_format($grand_total);
-						?>
-					</td>
-				</tr>
-			</table>
-		</div>
-		<div class="modal-footer">
-			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<div class="panel panel-default">
+							<div class="panel-heading" style="background-color: #f5f5f5;">
+								<strong><i class="fa fa-check-square"></i> Penerimaan</strong>
+							</div>
+							<div class="panel-body" style="padding: 10px;">
+								<table class="table table-condensed" style="margin-bottom: 0;">
+									<tr>
+										<td width="40%"><strong>Received Num</strong></td>
+										<td width="5%">:</td>
+										<td><?= htmlspecialchars($data_modal['received_num'] ?: '-'); ?></td>
+									</tr>
+									<tr>
+										<td><strong>Received Name</strong></td>
+										<td>:</td>
+										<td>
+											<?= htmlspecialchars(strtoupper($data_modal['received_name'] ?: '-')); ?>
+											<?php if ($level == "super_admin"): ?>
+												<form method="post" action="admin.php?page=editreceivedname2" style="margin-top: 10px;">
+													<input name="id_pengiriman" type="hidden" value="<?= $id_pengiriman; ?>" />
+													<button class="btn btn-primary btn-xs" type="submit">
+														<i class="fa fa-edit"></i> Edit
+													</button>
+												</form>
+											<?php endif; ?>
+										</td>
+									</tr>
+									<tr>
+										<td><strong>Notes</strong></td>
+										<td>:</td>
+										<td>
+											<?php if ($data_modal['notes']): ?>
+												<textarea class="form-control" rows="3" disabled><?= htmlspecialchars($data_modal['notes']); ?></textarea>
+											<?php else: ?>
+												<span class="text-muted">-</span>
+											<?php endif; ?>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+
+						<div class="panel panel-default">
+							<div class="panel-heading" style="background-color: #f5f5f5;">
+								<strong><i class="fa fa-money"></i> Financial Summary</strong>
+							</div>
+							<div class="panel-body" style="padding: 10px;">
+								<table class="table table-condensed" style="margin-bottom: 0;">
+									<tr>
+										<td width="40%"><strong>Total Price</strong></td>
+										<td width="5%">:</td>
+										<td class="text-right"><strong>Rp. <?= number_format($price, 0, ',', '.'); ?></strong></td>
+									</tr>
+									<tr>
+										<td><strong>Late Penalty</strong></td>
+										<td>:</td>
+										<td class="text-right text-danger">
+											<?php if ($late_penalty > 0): ?>
+												<strong>- Rp. <?= number_format($late_penalty, 0, ',', '.'); ?></strong>
+											<?php else: ?>
+												<span class="text-success">Rp. 0</span>
+											<?php endif; ?>
+										</td>
+									</tr>
+									<tr style="background-color: #f9f9f9; font-size: 16px;">
+										<td><strong>Grand Total</strong></td>
+										<td>:</td>
+										<td class="text-right">
+											<strong class="text-success">Rp. <?= number_format($grand_total, 0, ',', '.'); ?></strong>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">
+					<i class="fa fa-times"></i> Close
+				</button>
+			</div>
 		</div>
 	</div>
-</div>
 </div>
