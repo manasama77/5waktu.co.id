@@ -1,0 +1,30 @@
+# Logs
+error_log
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+
+# Database backups
+*.sql
+*.sql.gz
+
+# Large files
+*.zip
+*.rar
+*.tar.gz
