@@ -1,0 +1,198 @@
+<?php
+session_start();
+include('config.php');
+
+$status=$_REQUEST['status'];
+
+$id=$_REQUEST['id'];
+$id_kota=$_SESSION["id_kota"];
+$satuan_penghitungan=$_SESSION["satuan_penghitungan"];
+$exit_date1=$_SESSION["exit_date1"];
+$durasi=$_SESSION["durasi"];
+$satuan_penghitungan=$_SESSION["satuan_penghitungan"];
+$random_id= $_SESSION['random_id'];
+$id_produk_katalog= $_REQUEST['id_produk_katalog'];
+$quantity= $_REQUEST['quantity'];
+
+$kueri_weight=mysqli_query($con, "SELECT * FROM tbl_kategori_produk AS kp LEFT JOIN tbl_produk_katalog AS pk ON kp.id_kategori_produk = pk.id_kategori_produk WHERE pk.id_produk_katalog=$id_produk_katalog");
+$data_weight=mysqli_fetch_array($kueri_weight);
+$weight_class=$data_weight['weight_class'];
+$weight=$data_weight['weight'];
+$volumetric=$data_weight['volumetric'];
+$id_kategori_produk=$data_weight['id_kategori_produk'];
+$total_weight=$weight*$quantity;
+$total_volumetric=$volumetric*$quantity;
+
+if($satuan_penghitungan=="weight")
+{
+	if($weight_class=="c" && $id_kategori_produk==11)
+	{
+		if($quantity<=10)
+		{
+			$quantity=1;
+			$total_weight=$weight*$quantity;
+		}
+		else
+		{
+			$quantity=$quantity/10;
+			$quantity=ceil($quantity);
+			$total_weight=$weight*$quantity;
+		}
+		
+		if($total_weight>=21)
+		{
+			$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+			$data_harga=mysqli_fetch_array($kueri_harga);
+			$total_harga=$data_harga['satuan_harga']*$total_weight;
+		}
+		elseif($total_weight<=20)
+		{
+			$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_minimum WHERE id_kota=$id_kota");
+			$data_harga=mysqli_fetch_array($kueri_harga);
+			$total_harga=$data_harga['satuan_harga_minimum'];
+		}
+		
+		
+	}
+	elseif($weight_class=="c" && $id_kategori_produk==12)
+	{
+		if($quantity<=50)
+		{
+			$quantity=1;
+			$total_weight=$weight*$quantity;
+		}
+		else
+		{
+			$quantity=$quantity/50;
+			$quantity=ceil($quantity);
+			$total_weight=$weight*$quantity;
+		}
+		
+		if($total_weight >= 21)
+		{
+			$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+			$data_harga=mysqli_fetch_array($kueri_harga);
+			$total_harga=$data_harga['satuan_harga']*$total_weight;
+		}
+		elseif($total_weight <= 20)
+		{
+			$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_minimum WHERE id_kota=$id_kota");
+			$data_harga=mysqli_fetch_array($kueri_harga);
+			$total_harga=$data_harga['satuan_harga_minimum'];
+		}
+		
+	}
+	elseif($weight_class=="c" && $id_kategori_produk==14)
+	{
+		if($quantity<=10)
+		{
+			$quantity=1;
+			$total_weight=$weight*$quantity;
+		}
+		else
+		{
+			$quantity=$quantity/10;
+			$quantity=ceil($quantity);
+			$total_weight=$weight*$quantity;
+		}
+		
+		if($total_weight >= 21)
+		{
+			$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+			$data_harga=mysqli_fetch_array($kueri_harga);
+			$total_harga=$data_harga['satuan_harga']*$total_weight;
+		}
+		elseif($total_weight <= 20)
+		{
+			$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_minimum WHERE id_kota=$id_kota");
+			$data_harga=mysqli_fetch_array($kueri_harga);
+			$total_harga=$data_harga['satuan_harga_minimum'];
+		}
+		
+	}
+	elseif($weight_class=="c" && $total_weight<="20")
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_minimum WHERE id_kota=$id_kota");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		$total_harga=$data_harga['satuan_harga_minimum'];
+	}
+	elseif($weight_class=="c" && $total_weight>="21")
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		$total_harga=$data_harga['satuan_harga']*$total_weight;
+	}
+	elseif($weight_class=="b" && $id_kategori_produk==8)
+	{
+		if($quantity<=6)
+		{
+			$quantity=1;
+			$total_weight=$weight*$quantity;
+		}
+		else
+		{
+			$quantity=$quantity/6;
+			$quantity=ceil($quantity);
+			$total_weight=$weight*$quantity;
+		}
+		
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		$total_harga=$data_harga['satuan_harga']*$quantity;
+	}
+	elseif($weight_class=="b" && $id_kategori_produk==6  || $id_kategori_produk==7  || $id_kategori_produk==9)
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		$total_harga=$data_harga['satuan_harga']*$quantity;
+	}
+	elseif($weight_class=="a" && $id_kategori_produk==2 && $weight<="150")
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_electone WHERE id_kota=$id_kota");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		$total_harga=$data_harga['satuan_harga_electone']*$quantity;
+	}
+	elseif($weight_class=="a" && $id_kategori_produk==2 && $weight>="151")
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		//echo $data_harga['satuan_harga'];
+		$total_harga=$data_harga['satuan_harga']*$total_weight;
+	}
+	elseif($weight_class=="a" && $id_kategori_produk==3 || $id_kategori_produk==4 && $weight<="150")
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_clavinova WHERE id_kota=$id_kota");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		$total_harga=$data_harga['satuan_harga_clavinova']*$quantity;
+	}
+	elseif($weight_class=="a" && $id_kategori_produk==3 || $id_kategori_produk==4 && $weight>="151")
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		//echo $data_harga['satuan_harga'];
+		$total_harga=$data_harga['satuan_harga']*$total_weight;
+	}
+	else
+	{
+		$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_kota WHERE id_kota=$id_kota AND id_kategori_produk=$id_kategori_produk");
+		$data_harga=mysqli_fetch_array($kueri_harga);
+		$total_harga=$data_harga['satuan_harga']*$weight*$quantity;
+		
+	}
+}elseif($satuan_penghitungan=="volumetric"){
+	$kueri_harga=mysqli_query($con, "SELECT * FROM tbl_satuan_harga_volumetric WHERE id_kota=$id_kota");
+	$data_harga=mysqli_fetch_array($kueri_harga);
+	$total_harga=$data_harga['satuan_harga_volumetric']*$volumetric*$quantity;
+}
+
+$kueri2 = mysqli_query($con, "INSERT INTO temp_produk (id_temp_produk, random_id, id_produk_katalog, quantity, total_harga, weight_class, total_weight, total_volumetric) VALUES ('','$random_id','$id_produk_katalog','$quantity','$total_harga','$weight_class','$total_weight','$total_volumetric')");
+if($kueri2)
+{
+	header("location:admin.php?status=$status&&page=editpengirimanprogress&&random_id=$random_id&&id=$id");
+}
+else
+{
+	echo "ERROR SILAHKAN HUBUNGI ADMINISTRATOR";
+}
+
+?>
