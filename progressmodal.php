@@ -246,31 +246,16 @@ $kueri_temp_produk = mysqli_query($con, "
 							<div class="panel-body">
 								<table class="table table-condensed">
 									<tr>
-										<td width="40%">Received Date</td>
-										<td width="5%">:</td>
-										<td>
-											<?php if ($level == "super_admin") { ?>
-												<form method="post" action="admin.php?page=addreceivedinfo" style="margin: 0;">
-													<input name="id_pengiriman" type="hidden" value="<?php echo $id_pengiriman; ?>" />
-													<input name="estimation_date" type="hidden" value="<?php echo htmlspecialchars($data_modal['estimation_date']); ?>" />
-													<button class="btn btn-success btn-sm" type="submit">
-														<i class="fa fa-plus"></i> Add Received Info
-													</button>
-												</form>
-											<?php } ?>
-										</td>
-									</tr>
-									<tr>
 										<td>Received Number</td>
 										<td>:</td>
 										<td>
 											<?php echo htmlspecialchars($data_modal['received_num']); ?>
-											<?php if ($level == "super_admin" && !empty($data_modal['received_num'])) { ?>
+											<?php if ($level == "super_admin") { ?>
 												<br><br>
 												<form method="post" action="admin.php?page=editreceivednum" style="margin: 0;">
 													<input name="id_pengiriman" type="hidden" value="<?php echo $id_pengiriman; ?>" />
 													<button class="btn btn-primary btn-xs" type="submit">
-														<i class="fa fa-edit"></i> Edit Number
+														<i class="fa fa-edit"></i> Edit Received Number
 													</button>
 												</form>
 											<?php } ?>
@@ -281,12 +266,12 @@ $kueri_temp_produk = mysqli_query($con, "
 										<td>:</td>
 										<td>
 											<?php echo htmlspecialchars($data_modal['received_name']); ?>
-											<?php if ($level == "super_admin" && !empty($data_modal['received_name'])) { ?>
+											<?php if ($level == "super_admin") { ?>
 												<br><br>
 												<form method="post" action="admin.php?page=editreceivedname" style="margin: 0;">
 													<input name="id_pengiriman" type="hidden" value="<?php echo $id_pengiriman; ?>" />
 													<button class="btn btn-primary btn-xs" type="submit">
-														<i class="fa fa-edit"></i> Edit Name
+														<i class="fa fa-edit"></i> Edit Received Name
 													</button>
 												</form>
 											<?php } ?>
@@ -315,6 +300,17 @@ $kueri_temp_produk = mysqli_query($con, "
 							</div>
 						</div>
 					</div>
+				</div>
+				<div style="width: 100%;">
+					<?php if ($level == "super_admin") { ?>
+						<form method="post" action="admin.php?page=addreceivedinfo" style="margin: 0;">
+							<input name="id_pengiriman" type="hidden" value="<?php echo $id_pengiriman; ?>" />
+							<input name="estimation_date" type="hidden" value="<?php echo htmlspecialchars($data_modal['estimation_date']); ?>" />
+							<button class="btn btn-success btn-sm" type="submit" style="width: 100%;">
+								<i class="fa fa-check"></i> Move to Delivered Status
+							</button>
+						</form>
+					<?php } ?>
 				</div>
 			</div>
 			<div class="modal-footer">
