@@ -60,7 +60,7 @@ if (!isset($_SESSION['login'])) {
 						<span class="fa fa-bar"></span>
 						<span class="fa fa-bar"></span>
 					</a>
-					<div class="brand"><a href="admin.php"><img src="img/logo.png" width="550px" /></a></div>
+					<div class="brand"><a href="admin.php"><img src="img/logo.png" /></a></div>
 					<div class="nav-collapse">
 						<ul class="nav pull-right">
 							<li class="dropdown">
